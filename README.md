@@ -25,7 +25,7 @@ Below you will find the steps of the workshop. The best way to follow along is t
 # Requirements
 To follow along with this workshop you need the following things:
 
-- Java 21
+- Java 21 or higher
 - Check out and run the project in [this repository](https://github.com/davidtos/workshop_server)
 - Check out this repository if you haven't done so already
 
@@ -52,9 +52,18 @@ The first step is to make the **Scrape** class run concurrently using platform t
 Scrape instances that each scrape a single page.
 
 <details>
-<summary>Hint</summary>
+<summary>Hint 1</summary>
 One way to achieve this is by using the Executors services. 
 </details>
+
+<details>
+<summary>Hint 2</summary>
+To make the scrape class into something that is easily run by a thread. You can make it so that the Scrape class
+implements the Runnable interface. You can then either rename the scrape method to Run or create a new Run method.
+
+Done this, you can pass a new Scrape instance to a Thread.
+</details>
+
 
 ## (Step 3) - Start using virtual threads
 You can now scrape webpages using multiple Scrape instances that each run on a Platform Thread. The next step is to change it in such a way that it uses Virtual threads instead.  To do this you can use the Thread class or an Executor.

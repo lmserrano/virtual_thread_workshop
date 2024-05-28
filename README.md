@@ -152,11 +152,11 @@ for (Element link : linksOnPage) {
 Run the Scraper a few times with and without the improvement to see the difference in performance it makes.
 
 ## (Step 8) - Use StructuredTaskScope
-> For this and the following steps it may maybe necessary to run your application with the `--enable-preview` flag.
+> For this and the following steps it may be necessary to run your application with the `--enable-preview` flag.
 
 During the previous step, you started two virtual threads inside another virtual thread. This is a great way to run things concurrently, but it creates an implicit relationship between the threads. What should happen when a thread fails? The desired behavior in this case would be all or nothing, either all threads succeed or we do a rollback.
 
-During this step, we are going to improve the code to make the relationship these threads have more explicit. This help other
+During this step, we are going to improve the code to make the relationship these threads have more explicit. This helps other
 developers to better understand the intent of your code, and enables you to use a powerful way of managing the lifetime of threads.
 
 For this step rewrite the code from the previous assignment in a way that it uses `StructuredTaskScope.ShutdownOnFailure()` the idea is

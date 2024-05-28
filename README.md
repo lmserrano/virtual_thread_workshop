@@ -115,8 +115,34 @@ Run the web scraper with one of these two options and replace the functionality 
 to be pinned. Try them both out and see what the difference is between the both of them and which one helps you the most to fix the issue.
 
 <details>
-<summary>Hint</summary>
+<summary>Hint 1</summary>
 Java 9 added an HTTP client that does not block
+</details>
+
+
+<details>
+<summary>Hint 2</summary>
+If you want to use the new http client you can create one using the following example. It will create a basic client
+that will follow redirects and has a timeout of 20 seconds.
+
+````java
+private static HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
+    }
+````
+
+Using the client can be done as follows. This method takes an url and passes it to the client and returns the body.
+````java
+private String getBody(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+````
 </details>
 
 ## (Step 6) - Set carrier threads (Improve performance branch)

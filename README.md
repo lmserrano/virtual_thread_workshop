@@ -12,6 +12,11 @@ new addition to the Java language but doesn't work the same as platform threads 
 To follow along with the workshop you need to also check out [this repository](https://github.com/davidtos/workshop_server).
 The repo contains a Spring application that is going to act as the web server that you are going to scrape.
 
+## contact info
+If you have any questions after the workshop or didn't attend the workshop but still want to ask me something
+you can find my contact info here https://davidvlijmincx.com/about/
+
+
 ## How to follow along with the workshop
 Below you will find the steps of the workshop. The best way to follow along is to start with step 1 and to keep developing inside this branch. If you want to start every step of the workshop with a clean branch you can also check out the branch belonging to that step. Each step has a branch inside this git repo with the same name. If you are falling behind please say so, then we can adjust the speed of the workshop :-) or you can check out at the branch of the next step.
 

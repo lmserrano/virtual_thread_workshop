@@ -12,9 +12,11 @@ new addition to the Java language but doesn't work the same as platform threads 
 To follow along with the workshop you need to also check out [this repository](https://github.com/davidtos/workshop_server).
 The repo contains a Spring application that is going to act as the web server that you are going to scrape.
 
-## contact info
+## Contact info
 If you have any questions after the workshop or didn't attend the workshop but still want to ask me something
 you can find my contact info here https://davidvlijmincx.com/about/
+
+i am happy to answer any Java related question :)
 
 
 ## How to follow along with the workshop

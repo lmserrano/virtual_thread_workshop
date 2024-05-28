@@ -25,7 +25,7 @@ Below you will find the steps of the workshop. The best way to follow along is t
 # Requirements
 To follow along with this workshop you need the following things:
 
-- Java 21
+- Java 21 or higher
 - Check out and run the project in [this repository](https://github.com/davidtos/workshop_server)
 - Check out this repository if you haven't done so already
 
@@ -52,9 +52,18 @@ The first step is to make the **Scrape** class run concurrently using platform t
 Scrape instances that each scrape a single page.
 
 <details>
-<summary>Hint</summary>
+<summary>Hint 1</summary>
 One way to achieve this is by using the Executors services. 
 </details>
+
+<details>
+<summary>Hint 2</summary>
+To make the scrape class into something that is easily run by a thread. You can make it so that the Scrape class
+implements the Runnable interface. You can then either rename the scrape method to Run or create a new Run method.
+
+Done this, you can pass a new Scrape instance to a Thread.
+</details>
+
 
 ## (Step 3) - Start using virtual threads
 You can now scrape webpages using multiple Scrape instances that each run on a Platform Thread. The next step is to change it in such a way that it uses Virtual threads instead.  To do this you can use the Thread class or an Executor.
@@ -110,6 +119,32 @@ to be pinned. Try them both out and see what the difference is between the both 
 Java 9 added an HTTP client that does not block
 </details>
 
+
+<details>
+<summary>Hint</summary>
+If you want to use the new http client you can create one using the following example. It will create a basic client
+that will follow redirects and has a timeout of 20 seconds.
+
+````java
+private static HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
+    }
+````
+
+Using the client can be done as follows. This method takes an url and passes it to the client and returns the body.
+````java
+private String getBody(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+````
+</details>
+
 ## (Step 6) - Set carrier threads (Improve performance branch)
 By default, you get as many carrier threads as there are cores available inside your system. There are two ways to tweak the
 number of carrier threads that get created.
@@ -129,7 +164,10 @@ Try out some different numbers and see if it increases or lowers the amount of p
 The next step is to improve the performance of the scraper. Make it so that the following operations run in their own virtual thread.
 
 ```java
+// operation 1:
 visited.add(url);
+
+// operation 2:
 for (Element link : linksOnPage) {
     String nextUrl = link.attr("abs:href");
     if (nextUrl.contains("http")) {
@@ -140,11 +178,11 @@ for (Element link : linksOnPage) {
 Run the Scraper a few times with and without the improvement to see the difference in performance it makes.
 
 ## (Step 8) - Use StructuredTaskScope
-> For this and the following steps it may maybe necessary to run your application with the `--enable-preview` flag.
+> For this and the following steps it may be necessary to run your application with the `--enable-preview` flag.
 
 During the previous step, you started two virtual threads inside another virtual thread. This is a great way to run things concurrently, but it creates an implicit relationship between the threads. What should happen when a thread fails? The desired behavior in this case would be all or nothing, either all threads succeed or we do a rollback.
 
-During this step, we are going to improve the code to make the relationship these threads have more explicit. This help other
+During this step, we are going to improve the code to make the relationship these threads have more explicit. This helps other
 developers to better understand the intent of your code, and enables you to use a powerful way of managing the lifetime of threads.
 
 For this step rewrite the code from the previous assignment in a way that it uses `StructuredTaskScope.ShutdownOnFailure()` the idea is

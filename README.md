@@ -138,7 +138,10 @@ Try out some different numbers and see if it increases or lowers the amount of p
 The next step is to improve the performance of the scraper. Make it so that the following operations run in their own virtual thread.
 
 ```java
+// operation 1:
 visited.add(url);
+
+// operation 2:
 for (Element link : linksOnPage) {
     String nextUrl = link.attr("abs:href");
     if (nextUrl.contains("http")) {

@@ -17,8 +17,8 @@ Below you will find the steps of the workshop. The best way to follow along is t
 
 # TL;DR
 - Let's build a web scraper!
-- Run the Spring project inside [this repository](https://github.com/davidtos/workshop_server), it has the web server we scrape inside it
-- Follow along with the steps below (Ron and David give some theory, hints, and background info between steps)
+- Run the Spring project inside [this repository](https://github.com/davidtos/workshop_server), it has the web server you will scrape inside it
+- Follow along with the steps below
 - Are you already done and want to start with the next step? go head! :-)
 - Any questions? Feel free to ask! I more than happy to answer them
 
@@ -45,7 +45,7 @@ This is the webserver that the scraper is going to scrape. The repository contai
 When you have both projects checked out and the Spring boot application running you can verify if everything works as it should. To check that everything works you can run the WebScraper class from this repository; it should scrape a single page.
 
 ## (Step 2) - Add platform threads
-Check out the following branch "add platform threads" if you haven't done so already. This branch is the basis of the web scraper.
+Check out the following branch "step-1-2-add-platform-threads" if you haven't done so already (it is the default branch) . This branch is the basis of the web scraper.
 you can already run it, and it will scrape a single page from the web server/ Spring boot application.
 
 The first step is to make the **Scrape** class run concurrently using platform threads. The goal is to be able to create any number of

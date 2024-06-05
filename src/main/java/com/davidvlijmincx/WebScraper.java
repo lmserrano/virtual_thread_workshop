@@ -7,6 +7,11 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -93,9 +98,26 @@ class Scrape implements Runnable {
 
     private final Set<String> visited;
 
+    private final HttpClient client;
+
     public Scrape(LinkedBlockingQueue<String> pageQueue, Set<String> visited) {
         this.pageQueue = pageQueue;
         this.visited = visited;
+        this.client = createHttpClient();
+    }
+
+    private static HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
+    }
+
+    private String getBody(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
     }
 
     public void scrape() {
@@ -103,7 +125,10 @@ class Scrape implements Runnable {
         try {
             String url = pageQueue.take();
 
-            Document document = Jsoup.connect(url).get();
+            // // Problematic line that results in Virtual Threads being pinned
+            //Document document = Jsoup.connect(url).get();
+
+            Document document = Jsoup.parse(getBody(url));
             Elements linksOnPage = document.select("a[href]");
 
             visited.add(url);

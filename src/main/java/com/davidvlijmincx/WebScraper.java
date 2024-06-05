@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class WebScraper {
@@ -21,7 +22,28 @@ public class WebScraper {
 
         long startTime = System.currentTimeMillis();
 
-        new Scrape(queue, visited).scrape();
+        // // Without Threads
+        //new Scrape(queue, visited).scrape();
+
+        var task = new Scrape(queue, visited);
+
+        // // 2 Approaches
+        // 1. Using Runnable
+        var thread = new Thread(task);
+        thread.start();
+
+        // 2. Using ExecutorService
+        var executor = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors()
+        );
+        executor.submit(task);
+
+        // Give the threads some time to finish
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         measureTime(startTime, visited);
 
@@ -42,7 +64,7 @@ public class WebScraper {
 
 }
 
-class Scrape {
+class Scrape implements Runnable {
 
     private final LinkedBlockingQueue<String> pageQueue;
 
@@ -75,4 +97,8 @@ class Scrape {
 
     }
 
+    @Override
+    public void run() {
+        this.scrape();
+    }
 }

@@ -34,8 +34,12 @@ public class WebScraper {
 
         // 2. Using ExecutorService
         // Note: If we use try with resources, we don't need to call shutdown nor awaitTermination
-        try(var executor = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors())) {
+        //try(var executor = Executors.newFixedThreadPool(
+        //        Runtime.getRuntime().availableProcessors())) {
+        var platformThreadFactory = Thread.ofPlatform().factory();
+        var virtualThreadFactory = Thread.ofVirtual().factory();
+        var threadFactory = virtualThreadFactory;
+        try(var executor = Executors.newThreadPerTaskExecutor(threadFactory)) { // or newVirtualThreadPerTaskExecutor()
             executor.submit(task);
         } catch (Exception e) {
             throw new RuntimeException(e);

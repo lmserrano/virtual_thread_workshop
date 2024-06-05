@@ -18,14 +18,37 @@ public class WebScraper {
         final var queue = new LinkedBlockingQueue<String>(2000);
         Set<String> visited = ConcurrentHashMap.newKeySet(3000);
 
+        // Configurations
+        final var PLATFORM_THREAD_FACTORY = Thread.ofPlatform().factory();
+        final var VIRTUAL_THREAD_FACTORY = Thread.ofVirtual().factory();
+        final var THREAD_FACTORY = VIRTUAL_THREAD_FACTORY;
+
+        //final var NUM_DELAYED_URLS = 500;
+        //final var NUM_REGULAR_URLS = 500;
+
+        //final var NUM_TASKS = NUM_DELAYED_URLS + NUM_REGULAR_URLS;
+        final var NUM_TASKS = 10000;
+
+       // System.out.println("Configuration.\r\nThreads Factory: " + THREAD_FACTORY.toString()+"\r\n"+"Delayed URLs:"+NUM_DELAYED_URLS+"\r\n"+"Regular URLs:"+NUM_REGULAR_URLS+"\r\n"+"Total Tasks:"+NUM_TASKS);
+        System.out.println("Configuration.\r\nThreads Factory: " + THREAD_FACTORY.toString()+"\r\n"+"Total Tasks:"+NUM_TASKS);
+
+        // Prepare URLs to be crawled
         queue.add("http://localhost:8080/v1/crawl/delay/330/57");
+/*        for(int i=0; i!=NUM_DELAYED_URLS; ++i) {
+            //var delay = (int)(Math.random() * 1000);
+            var delay = 300;
+            queue.add("http://localhost:8080/v1/crawl/delay/" + delay + "/" + i);
+        }
+        for(int i=0; i!=NUM_REGULAR_URLS; ++i) {
+            queue.add("http://localhost:8080/v1/crawl/" + i);
+        }*/
+
 
         long startTime = System.currentTimeMillis();
 
         // // Without Threads
         //new Scrape(queue, visited).scrape();
 
-        var task = new Scrape(queue, visited);
 
         // // 2 Approaches
         // 1. Using Runnable
@@ -36,11 +59,11 @@ public class WebScraper {
         // Note: If we use try with resources, we don't need to call shutdown nor awaitTermination
         //try(var executor = Executors.newFixedThreadPool(
         //        Runtime.getRuntime().availableProcessors())) {
-        var platformThreadFactory = Thread.ofPlatform().factory();
-        var virtualThreadFactory = Thread.ofVirtual().factory();
-        var threadFactory = virtualThreadFactory;
-        try(var executor = Executors.newThreadPerTaskExecutor(threadFactory)) { // or newVirtualThreadPerTaskExecutor()
-            executor.submit(task);
+        try(var executor = Executors.newThreadPerTaskExecutor(THREAD_FACTORY)) { // or newVirtualThreadPerTaskExecutor()
+            for(int i = 0; i!=NUM_TASKS; ++i) {
+                var task = new Scrape(queue, visited);
+                executor.submit(task);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

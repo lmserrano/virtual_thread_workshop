@@ -29,19 +29,15 @@ public class WebScraper {
 
         // // 2 Approaches
         // 1. Using Runnable
-        var thread = new Thread(task);
-        thread.start();
+        //var thread = new Thread(task);
+        //thread.start();
 
         // 2. Using ExecutorService
-        var executor = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors()
-        );
-        executor.submit(task);
-
-        // Give the threads some time to finish
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
+        // Note: If we use try with resources, we don't need to call shutdown nor awaitTermination
+        try(var executor = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors())) {
+            executor.submit(task);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 

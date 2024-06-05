@@ -45,7 +45,7 @@ public class ScopedWebScraper {
                                 throw new RuntimeException(e);
                             }
                         },
-                        new ScopedSpider(queue, visited, client)));
+                        new ScopedScraper(queue, visited, client)));
             }
         }
 
@@ -83,6 +83,8 @@ class ScopedScraper implements Runnable {
     private final LinkedBlockingQueue<String> pageQueue;
 
     private final Set<String> visited;
+
+    final static ScopedValue<Supplier<HttpClient>> CLIENT = ScopedValue.newInstance();
 
     private final HttpClient client;
 
@@ -163,7 +165,7 @@ class ScopedScraper implements Runnable {
 
     private String getBody(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = ScopedScraper.CLIENT.get().get().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
 

@@ -32,7 +32,7 @@ public class WebScraper {
         //final var NUM_REGULAR_URLS = 500;
 
         //final var NUM_TASKS = NUM_DELAYED_URLS + NUM_REGULAR_URLS;
-        final var NUM_TASKS = 10000;
+        final var NUM_TASKS = 100;
 
        // System.out.println("Configuration.\r\nThreads Factory: " + THREAD_FACTORY.toString()+"\r\n"+"Delayed URLs:"+NUM_DELAYED_URLS+"\r\n"+"Regular URLs:"+NUM_REGULAR_URLS+"\r\n"+"Total Tasks:"+NUM_TASKS);
         System.out.println("Configuration.\r\nThreads Factory: " + THREAD_FACTORY.toString()+"\r\n"+"Total Tasks:"+NUM_TASKS);
@@ -131,12 +131,36 @@ class Scrape implements Runnable {
             Document document = Jsoup.parse(getBody(url));
             Elements linksOnPage = document.select("a[href]");
 
-            visited.add(url);
-            for (Element link : linksOnPage) {
-                String nextUrl = link.attr("abs:href");
-                if (nextUrl.contains("http")) {
-                    pageQueue.add(nextUrl);
+/*            Thread.startVirtualThread(new Runnable() {
+                @Override
+                public void run() {
+                    visited.add(url);
                 }
+            });
+
+            Thread.startVirtualThread(new Runnable() {
+                @Override
+                public void run() {
+                    for (Element link : linksOnPage) {
+                        String nextUrl = link.attr("abs:href");
+                        if (nextUrl.contains("http")) {
+                            pageQueue.add(nextUrl);
+                        }
+                    }
+                }
+            });*/
+
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+
+                executor.submit(() -> visited.add(url));
+                executor.submit(() -> {
+                    for (Element link : linksOnPage) {
+                        String nextUrl = link.attr("abs:href");
+                        if (nextUrl.contains("http")) {
+                            pageQueue.add(nextUrl);
+                        }
+                    }
+                });
             }
 
         } catch (IOException | InterruptedException e) {

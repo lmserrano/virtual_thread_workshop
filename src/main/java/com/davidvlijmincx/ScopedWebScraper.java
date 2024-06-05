@@ -13,10 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 public class ScopedWebScraper {
@@ -103,12 +100,54 @@ class ScopedScraper implements Runnable {
             Document document = Jsoup.parse(getBody(url));
             Elements linksOnPage = document.select("a[href]");
 
+            // Sequential
             visited.add(url);
             for (Element link : linksOnPage) {
                 String nextUrl = link.attr("abs:href");
                 if (nextUrl.contains("http")) {
                     pageQueue.add(nextUrl);
                 }
+            }
+
+            // doing everything separate;
+//                    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+//
+//                        executor.submit(() -> visited.add(url));
+//                        executor.submit(() -> {
+//                            for (Element link : linksOnPage) {
+//                                String nextUrl = link.attr("abs:href");
+//                                if (nextUrl.contains("http")) {
+//                                    pageQueue.add(nextUrl);
+//                                }
+//                            }
+//                        });
+//                    }
+
+            // do stuff as a group
+//                try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+//
+//                    scope.fork(() -> visited.add(url));
+//                    scope.fork(() -> {
+//                                for (Element link : linksOnPage) {
+//                                    String nextUrl = link.attr("abs:href");
+//                                    if (nextUrl.contains("http")) {
+//                                        pageQueue.add(nextUrl);
+//                                    }
+//                                }
+//                                return null;
+//                            }
+//                    );
+//                }
+
+            //             assignment to just store it somewhere but not caring where to store it.
+            try (var scope = new StructuredTaskScope.ShutdownOnSuccess<>()) {
+
+                scope.fork(() ->  post("http://localhost:8080/v1/VisitedService/1"));
+                scope.fork(() ->  post("http://localhost:8080/v1/VisitedService/2"));
+                scope.fork(() ->  post("http://localhost:8080/v1/VisitedService/3"));
+
+                scope.join();
+
             }
 
         } catch (IOException | InterruptedException e) {
@@ -126,5 +165,12 @@ class ScopedScraper implements Runnable {
         HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
+    }
+
+    private Object post(String serviceUrl) throws IOException, InterruptedException {
+        String url = ScopedScraper.URL.get().get();
+        HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofString(url)).uri(URI.create(serviceUrl)).build();
+        client.send(request, HttpResponse.BodyHandlers.ofString());
+        return null;
     }
 }

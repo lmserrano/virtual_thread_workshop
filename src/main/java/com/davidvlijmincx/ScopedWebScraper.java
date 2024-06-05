@@ -7,13 +7,17 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Supplier;
 
 public class ScopedWebScraper {
 
@@ -33,8 +37,18 @@ public class ScopedWebScraper {
         var threadFactory = Thread.ofVirtual().factory();
         try(var executor = Executors.newThreadPerTaskExecutor(threadFactory);) {
             for(int i = 0; i!=PAGES_TO_CRAWL; ++i) {
-                var task = new ScopedScraper(queue, visited, client);
-                executor.submit(task);
+                //var task = new ScopedScraper(queue, visited, client);
+                //executor.submit(task);
+
+                executor.submit(() -> ScopedValue.runWhere(ScopedSpider.URL,
+                        ()-> {
+                            try {
+                                return queue.take();
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        },
+                        new ScopedSpider(queue, visited, client)));
             }
         }
 
@@ -67,6 +81,8 @@ public class ScopedWebScraper {
 
 class ScopedScraper implements Runnable {
 
+    final static ScopedValue<Supplier<String>> URL = ScopedValue.newInstance();
+
     private final LinkedBlockingQueue<String> pageQueue;
 
     private final Set<String> visited;
@@ -82,9 +98,9 @@ class ScopedScraper implements Runnable {
     public void scrape() {
 
         try {
-            String url = pageQueue.take();
+            String url = ScopedScraper.URL.get().get(); //pageQueue.take();
 
-            Document document = Jsoup.connect(url).get();
+            Document document = Jsoup.parse(getBody(url));
             Elements linksOnPage = document.select("a[href]");
 
             visited.add(url);
@@ -104,5 +120,11 @@ class ScopedScraper implements Runnable {
     @Override
     public void run() {
         scrape();
+    }
+
+    private String getBody(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
     }
 }
